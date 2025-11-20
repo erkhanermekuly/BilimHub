@@ -1,0 +1,44 @@
+<header class="header">
+    <div class="container">
+        <div class="header-content">
+            <div class="header_left">
+                <a href="/">
+                    <h2 class="logo">BilimHub</h2>
+                </a>
+            </div>
+
+            <nav class="header_center">
+                <a href="/">Главная</a>
+                <a href="/teachers">Преподаватели</a>
+                <a href="/rating">Рейтинг</a>
+                <a href="/tests">Онлайн тест</a>
+                <a href="/contacts">Контакты</a>
+            </nav>
+        
+            <div class="header_right">
+                <% if (user) { %>
+                    <div class="user-menu">
+                        <div class="dropdown">
+                            <button class="dropdown-btn">
+                                <span>👤</span>
+                            </button>
+                            <div class="dropdown-content">
+                                <a href="/profile">Профиль</a>
+                                <a href="/logout">Выйти</a>
+                            </div>
+                        </div>
+                        <span class="user-name"><%= user.name %></span>
+                    </div>
+                <% } else { %>
+                    <a href="/login" class="btn-login">Войти</a>
+                    <a href="/register" class="btn-register">Регистрация</a>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</header>
+</body>
+</html>
+
+
+   

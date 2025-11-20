@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('../partials/head.ejs') %>
+    <title>BilimHub - Главная</title>
+</head>
+<body>
+    <%- include('../partials/header.ejs') %>
+    
+    <main class="main-content">
+        <section class="hero">
+            <div class="container">
+                <h1>Добро пожаловать в BilimHub</h1>
+                <% if (user) { %>
+                    <p class="welcome-text">Здравствуйте, <strong><%= user.name %></strong>!</p>
+                    <p>Email: <%= user.email %></p>
+                    <div class="user-actions">
+                        <a href="/profile" class="btn btn-primary">Мой профиль</a>
+                        <a href="/logout" class="btn btn-secondary">Выйти</a>
+                    </div>
+                <% } else { %>
+                    <p class="welcome-text">Платформа для онлайн обучения</p>
+                    <div class="cta-buttons">
+                        <a href="/register" class="btn btn-primary">Регистрация</a>
+                        <a href="/login" class="btn btn-secondary">Войти</a>
+                    </div>
+                <% } %>
+            </div>
+        </section>
+
+        <section class="features">
+            <div class="container">
+                <h2>Наши преимущества</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📚</div>
+                        <h3>Качественные курсы</h3>
+                        <p>Широкий выбор образовательных программ</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">👨‍🏫</div>
+                        <h3>Опытные преподаватели</h3>
+                        <p>Профессионалы своего дела</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🏆</div>
+                        <h3>Рейтинговая система</h3>
+                        <p>Отслеживайте свой прогресс</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">✅</div>
+                        <h3>Онлайн тестирование</h3>
+                        <p>Проверьте свои знания</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <%- include('../partials/footer.ejs') %>
+</body>
+</html>

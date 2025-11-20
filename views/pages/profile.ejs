@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('../partials/head.ejs') %>
+    <title>Профиль - BilimHub</title>
+</head>
+<body>
+    <%- include('../partials/header.ejs') %>
+    
+    <main class="main-content profile-page">
+        <div class="container">
+            <div class="profile-container">
+                <h1>Мой профиль</h1>
+                
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <div class="profile-avatar">
+                            <span class="avatar-icon">👤</span>
+                        </div>
+                        <div class="profile-info">
+                            <h2 id="userName"><%= user.name %></h2>
+                            <p class="user-email"><%= user.email %></p>
+                            <p class="user-joined">Дата регистрации: <%= new Date(user.createdAt).toLocaleDateString('ru-RU') %></p>
+                        </div>
+                    </div>
+
+                    <div class="profile-actions">
+                        <button class="btn btn-primary" onclick="toggleEditMode()">Редактировать профиль</button>
+                        <button class="btn btn-danger" onclick="confirmLogout()">Выйти из аккаунта</button>
+                    </div>
+                </div>
+
+                <div class="profile-edit-form" id="editForm" style="display: none;">
+                    <h3>Редактировать профиль</h3>
+                    <form onsubmit="updateProfile(event)">
+                        <div class="form-group">
+                            <label for="name">Имя</label>
+                            <input type="text" id="name" name="name" value="<%= user.name %>" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" value="<%= user.email %>" required>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Сохранить</button>
+                            <button type="button" class="btn btn-secondary" onclick="toggleEditMode()">Отмена</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="change-password-section">
+                    <h3>Изменить пароль</h3>
+                    <button class="btn btn-secondary" onclick="togglePasswordForm()">Изменить пароль</button>
+                    
+                    <div class="password-form" id="passwordForm" style="display: none;">
+                        <form onsubmit="changePassword(event)">
+                            <div class="form-group">
+                                <label for="currentPassword">Текущий пароль</label>
+                                <input type="password" id="currentPassword" name="currentPassword" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="newPassword">Новый пароль</label>
+                                <input type="password" id="newPassword" name="newPassword" required minlength="6">
+                            </div>
+                            <div class="form-group">
+                                <label for="confirmPassword">Подтвердите новый пароль</label>
+                                <input type="password" id="confirmPassword" name="confirmPassword" required>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Изменить пароль</button>
+                                <button type="button" class="btn btn-secondary" onclick="togglePasswordForm()">Отмена</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="message" class="message" style="display: none;"></div>
+            </div>
+        </div>
+    </main>
+
+    <%- include('../partials/footer.ejs') %>
+
+    <script>
+        function toggleEditMode() {
+            const form = document.getElementById('editForm');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function togglePasswordForm() {
+            const form = document.getElementById('passwordForm');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function updateProfile(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = {
+                name: formData.get('name'),
+                email: formData.get('email')
+            };
+
+            try {
+                const response = await fetch('/api/user/update', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showMessage('Профиль успешно обновлен!', 'success');
+                    document.getElementById('userName').textContent = data.name;
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showMessage(result.message || 'Ошибка обновления профиля', 'error');
+                }
+            } catch (error) {
+                showMessage('Ошибка соединения с сервером', 'error');
+            }
+        }
+
+        async function changePassword(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const newPassword = formData.get('newPassword');
+            const confirmPassword = formData.get('confirmPassword');
+
+            if (newPassword !== confirmPassword) {
+                showMessage('Пароли не совпадают', 'error');
+                return;
+            }
+
+            const data = {
+                currentPassword: formData.get('currentPassword'),
+                newPassword: newPassword
+            };
+
+            try {
+                const response = await fetch('/api/user/change-password', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showMessage('Пароль успешно изменен!', 'success');
+                    event.target.reset();
+                    togglePasswordForm();
+                } else {
+                    showMessage(result.message || 'Ошибка изменения пароля', 'error');
+                }
+            } catch (error) {
+                showMessage('Ошибка соединения с сервером', 'error');
+            }
+        }
+
+        function confirmLogout() {
+            if (confirm('Вы уверены, что хотите выйти?')) {
+                window.location.href = '/logout';
+            }
+        }
+
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = 'message ' + type;
+            messageEl.style.display = 'block';
+            
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

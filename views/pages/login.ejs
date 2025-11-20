@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head.ejs') %>
+    <title>Document</title>
+</head>
+<body class="body_login">
+    <div class="form"> 
+        <div class="user_login">
+            <img src="/images/icons/user.png" alt="">
+        </div>
+        <div class="form_action">
+            <% if (error) { %>
+                <div class="error-message" style="color: #ff4444; background: rgba(255, 68, 68, 0.1); padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+                    <%= error %>
+                </div>
+            <% } %>
+            <form action="/login" method="post" data-validate>
+                <fieldset>
+                    <label for="email"><img src="/images/icons/user.png" alt=""></label>
+                    <input type="email" name="email" placeholder="Напишите email" required>
+                </fieldset>
+                <fieldset>
+                    <label for="password"><img src="/images/icons/lock.png" alt=""></label>
+                    <input type="password" name="password" placeholder="Password" required>
+                </fieldset>
+                <button type="submit">Login</button>
+            </form>
+            <p>У вас нет аккаунта? <a href="/register">Зарегистрируйтесь</a></p>
+        </div>
+    </div>
+    <script src="/js/main.js"></script>
+</body>
+</html>
