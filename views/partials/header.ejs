@@ -9,10 +9,12 @@
 
             <nav class="header_center">
                 <a href="/">Главная</a>
-                <a href="/teachers">Преподаватели</a>
+                <a href="/themes">Курсы</a>
                 <a href="/rating">Рейтинг</a>
-                <a href="/tests">Онлайн тест</a>
                 <a href="/contacts">Контакты</a>
+                <% if (user && user.role === 'admin') { %>
+                    <a href="/admin" style="color: #f39c12; font-weight: 600;">🛠️ Админ</a>
+                <% } %>
             </nav>
         
             <div class="header_right">
@@ -24,14 +26,19 @@
                             </button>
                             <div class="dropdown-content">
                                 <a href="/profile">Профиль</a>
+                                <% if (user.role === 'admin') { %>
+                                    <a href="/admin">Админ панель</a>
+                                <% } %>
                                 <a href="/logout">Выйти</a>
                             </div>
                         </div>
                         <span class="user-name"><%= user.name %></span>
                     </div>
                 <% } else { %>
-                    <a href="/login" class="btn-login">Войти</a>
-                    <a href="/register" class="btn-register">Регистрация</a>
+                    <div class="auth-links">
+                        <a href="/login" class="btn-login">Войти</a>
+                        <a href="/register" class="btn-register">Регистрация</a>
+                    </div>
                 <% } %>
             </div>
         </div>

@@ -5,6 +5,8 @@ require('dotenv').config();
 const { connectDB, sequelize } = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
+const learningRoutes = require('./routes/learningRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 const { isAuthenticated } = require('./middleware/auth');
 
 const app = express();
@@ -51,9 +53,42 @@ app.get('/profile', isAuthenticated, (req, res) => {
     res.render('pages/profile');
 });
 
+// Страница курсов
+app.get('/themes', (req, res) => {
+    res.render('pages/themes');
+});
+
+// Страница деталей темы
+app.get('/themes/:id', (req, res) => {
+    res.render('pages/theme-detail');
+});
+
+// Страница лекции
+app.get('/lectures/:id', isAuthenticated, (req, res) => {
+    res.render('pages/lecture');
+});
+
+// Страница рейтинга
+app.get('/rating', (req, res) => {
+    res.render('pages/rating');
+});
+
+// Страница контактов
+app.get('/contacts', (req, res) => {
+    res.render('pages/contacts');
+});
+
+// Админ-панель (только для администраторов)
+const { isAdmin } = require('./middleware/auth');
+app.get('/admin', isAdmin, (req, res) => {
+    res.render('pages/admin');
+});
+
 // Подключение роутов
 app.use('/', authRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api', learningRoutes);
+app.use('/api', uploadRoutes);
 
 const PORT = process.env.PORT || 5000;
 

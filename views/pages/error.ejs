@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('../partials/head') %>
+    <title>Ошибка доступа - BilimHub</title>
+    <style>
+        .error-container {
+            max-width: 600px;
+            margin: 5rem auto;
+            padding: 3rem;
+            text-align: center;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .error-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+        }
+
+        .error-title {
+            font-size: 2rem;
+            color: #e74c3c;
+            margin-bottom: 1rem;
+        }
+
+        .error-message {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            margin-bottom: 2rem;
+        }
+
+        .back-button {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .back-button:hover {
+            background: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/header') %>
+
+    <div class="error-container">
+        <div class="error-icon">🚫</div>
+        <h1 class="error-title">Доступ запрещен</h1>
+        <p class="error-message">
+            <%= message || 'У вас нет прав для доступа к этой странице' %>
+        </p>
+        <a href="/" class="back-button">← Вернуться на главную</a>
+    </div>
+
+    <%- include('../partials/footer') %>
+</body>
+</html>

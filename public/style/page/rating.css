@@ -1,0 +1,175 @@
+.rating-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.page-header h1 {
+    font-size: 2.5rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.page-header p {
+    font-size: 1.2rem;
+    color: #7f8c8d;
+}
+
+.rating-table-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.rating-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.rating-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.rating-table th {
+    padding: 1.5rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.rating-table td {
+    padding: 1.5rem 1rem;
+    border-bottom: 1px solid #ecf0f1;
+}
+
+.rating-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.rating-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.rank-cell {
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.rank-1 {
+    color: #f39c12;
+}
+
+.rank-2 {
+    color: #95a5a6;
+}
+
+.rank-3 {
+    color: #cd7f32;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.user-name {
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.score-cell {
+    font-weight: bold;
+    color: #3498db;
+    font-size: 1.1rem;
+}
+
+.level-badge {
+    display: inline-block;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.level-novice {
+    background: #ecf0f1;
+    color: #7f8c8d;
+}
+
+.level-intermediate {
+    background: #d5f4e6;
+    color: #27ae60;
+}
+
+.level-advanced {
+    background: #d6eaf8;
+    color: #2980b9;
+}
+
+.level-expert {
+    background: #fadbd8;
+    color: #c0392b;
+}
+
+.stats-cell {
+    color: #7f8c8d;
+}
+
+.loading {
+    text-align: center;
+    padding: 3rem;
+    font-size: 1.2rem;
+    color: #7f8c8d;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.empty-state h2 {
+    color: #7f8c8d;
+    margin-bottom: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .rating-table {
+        font-size: 0.9rem;
+    }
+    
+    .rating-table th,
+    .rating-table td {
+        padding: 1rem 0.5rem;
+    }
+    
+    .user-avatar {
+        width: 35px;
+        height: 35px;
+    }
+}

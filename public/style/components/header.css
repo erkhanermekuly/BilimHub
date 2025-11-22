@@ -26,13 +26,13 @@ header{
     align-items: center;
     gap: 25px;
     justify-content: space-around;
-    width: 85%;
+    width: 75%;
 }
 
 .header_center a{
     text-decoration: none;
     color: #111;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
     padding: 25px 15px;
     border-radius: 5px;
@@ -57,4 +57,12 @@ header{
 .header_right a:hover{
     background-color: #111;
     color: #fff;
+} 
+
+.auth-links{
+    position: relative;
+    top: 0;
+    left: 105px;
+    display: flex;
+    gap: 15px;
 }

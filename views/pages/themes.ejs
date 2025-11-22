@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('../partials/head') %>
+    <link rel="stylesheet" href="/style/page/themes.css">
+    <title>Обучение - BilimHub</title>
+</head>
+<body>
+    <%- include('../partials/header') %>
+
+    <div class="themes-container">
+        <div class="page-header">
+            <h1>📚 Курсы обучения</h1>
+            <p>Выберите тему и начните свой путь в программировании</p>
+        </div>
+
+        <div id="loading" class="loading">
+            Загрузка курсов...
+        </div>
+
+        <div id="themes-grid" class="themes-grid" style="display: none;">
+            <!-- Темы будут загружены через JavaScript -->
+        </div>
+
+        <div id="empty-state" class="empty-state" style="display: none;">
+            <div class="empty-state-icon">📭</div>
+            <h2>Курсы пока не добавлены</h2>
+            <p>Скоро здесь появятся интересные материалы для обучения</p>
+        </div>
+    </div>
+
+    <%- include('../partials/footer') %>
+
+    <script>
+        // Загрузка тем
+        async function loadThemes() {
+            try {
+                const response = await fetch('/api/themes');
+                const themes = await response.json();
+
+                document.getElementById('loading').style.display = 'none';
+
+                if (themes.length === 0) {
+                    document.getElementById('empty-state').style.display = 'block';
+                    return;
+                }
+
+                document.getElementById('themes-grid').style.display = 'grid';
+                const grid = document.getElementById('themes-grid');
+
+                themes.forEach(theme => {
+                    const card = createThemeCard(theme);
+                    grid.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Ошибка загрузки тем:', error);
+                document.getElementById('loading').textContent = 'Ошибка загрузки курсов';
+            }
+        }
+
+        function createThemeCard(theme) {
+            const card = document.createElement('div');
+            card.className = 'theme-card';
+            card.onclick = () => window.location.href = `/themes/${theme.id}`;
+
+            const lecturesCount = theme.lectures ? theme.lectures.length : 0;
+
+            const imageHtml = theme.image 
+            ? `<img src="${theme.image}" alt="${theme.title}" class="theme-image" style="object-fit: cover;">` 
+            : '<div class="theme-image"></div>';
+        
+        card.innerHTML = `
+                ${imageHtml}
+                <div class="theme-content">
+                    <h3 class="theme-title">${theme.title}</h3>
+                    <p class="theme-description">${theme.description || 'Описание отсутствует'}</p>
+                    <div class="theme-meta">
+                        <span class="lectures-count">${lecturesCount} ${getLecturesWord(lecturesCount)}</span>
+                        <button class="start-button" onclick="event.stopPropagation(); window.location.href='/themes/${theme.id}'">
+                            Начать
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        function getLecturesWord(count) {
+            if (count % 10 === 1 && count % 100 !== 11) return 'лекция';
+            if ([2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100)) return 'лекции';
+            return 'лекций';
+        }
+
+        // Загрузка при открытии страницы
+        loadThemes();
+    </script>
+</body>
+</html>

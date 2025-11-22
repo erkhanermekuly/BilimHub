@@ -70,7 +70,8 @@ exports.register = async (req, res) => {
         req.session.user = {
             id: user.id,
             name: user.name,
-            email: user.email
+            email: user.email,
+            role: user.role
         };
 
         console.log('Регистрация успешна, редирект на главную');
@@ -132,10 +133,17 @@ exports.login = async (req, res) => {
         req.session.user = {
             id: user.id,
             name: user.name,
-            email: user.email
+            email: user.email,
+            role: user.role
         };
 
         console.log('Вход успешен, редирект на главную');
+        
+        // Если администратор, редирект на панель управления
+        if (user.role === 'admin') {
+            return res.redirect('/admin');
+        }
+        
         res.redirect('/');
     } catch (error) {
         console.error('❌ Ошибка входа:', error);

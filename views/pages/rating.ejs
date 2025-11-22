@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('../partials/head') %>
+    <link rel="stylesheet" href="/style/page/rating.css">
+    <title>Рейтинг - BilimHub</title>
+</head>
+<body>
+    <%- include('../partials/header') %>
+
+    <div class="rating-container">
+        <div class="page-header">
+            <h1>🏆 Рейтинг учеников</h1>
+            <p>Таблица лидеров по результатам обучения</p>
+        </div>
+
+        <div id="loading" class="loading">
+            Загрузка рейтинга...
+        </div>
+
+        <div id="rating-content" style="display: none;">
+            <div class="rating-table-container">
+                <table class="rating-table">
+                    <thead>
+                        <tr>
+                            <th>Место</th>
+                            <th>Ученик</th>
+                            <th>Баллы</th>
+                            <th>Уровень</th>
+                            <th>Завершено лекций</th>
+                            <th>Пройдено тестов</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rating-tbody">
+                        <!-- Данные будут загружены через JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="empty-state" class="empty-state" style="display: none;">
+            <div class="empty-state-icon">📊</div>
+            <h2>Рейтинг пока пуст</h2>
+            <p>Начните проходить курсы, чтобы попасть в таблицу лидеров!</p>
+        </div>
+    </div>
+
+    <%- include('../partials/footer') %>
+
+    <script>
+        async function loadRating() {
+            try {
+                const response = await fetch('/api/ratings');
+                
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки рейтинга');
+                }
+
+                const ratings = await response.json();
+
+                document.getElementById('loading').style.display = 'none';
+
+                if (ratings.length === 0) {
+                    document.getElementById('empty-state').style.display = 'block';
+                    return;
+                }
+
+                document.getElementById('rating-content').style.display = 'block';
+
+                const tbody = document.getElementById('rating-tbody');
+                tbody.innerHTML = '';
+
+                ratings.forEach((rating, index) => {
+                    const row = createRatingRow(rating, index + 1);
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Ошибка загрузки рейтинга:', error);
+                document.getElementById('loading').textContent = 'Ошибка загрузки рейтинга';
+            }
+        }
+
+        function createRatingRow(rating, rank) {
+            const tr = document.createElement('tr');
+
+            const rankClass = rank <= 3 ? `rank-${rank}` : '';
+            const levelClass = getLevelClass(rating.level);
+            const userInitial = rating.user.name.charAt(0).toUpperCase();
+
+            tr.innerHTML = `
+                <td class="rank-cell ${rankClass}">${getRankEmoji(rank)} ${rank}</td>
+                <td>
+                    <div class="user-info">
+                        <div class="user-avatar">${userInitial}</div>
+                        <span class="user-name">${rating.user.name}</span>
+                    </div>
+                </td>
+                <td class="score-cell">${rating.totalScore}</td>
+                <td>
+                    <span class="level-badge ${levelClass}">${rating.level}</span>
+                </td>
+                <td class="stats-cell">${rating.completedLectures}</td>
+                <td class="stats-cell">${rating.completedTests}</td>
+            `;
+
+            return tr;
+        }
+
+        function getRankEmoji(rank) {
+            if (rank === 1) return '🥇';
+            if (rank === 2) return '🥈';
+            if (rank === 3) return '🥉';
+            return '';
+        }
+
+        function getLevelClass(level) {
+            const levelMap = {
+                'Новичок': 'level-novice',
+                'Средний': 'level-intermediate',
+                'Продвинутый': 'level-advanced',
+                'Эксперт': 'level-expert'
+            };
+            return levelMap[level] || 'level-novice';
+        }
+
+        loadRating();
+    </script>
+</body>
+</html>

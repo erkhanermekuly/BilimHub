@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('../partials/head') %>
+    <link rel="stylesheet" href="/style/page/lecture.css">
+    <title>Лекция - BilimHub</title>
+</head>
+<body>
+    <%- include('../partials/header') %>
+
+    <div class="lecture-container">
+        <a href="#" class="back-button" onclick="history.back(); return false;">← Назад к лекциям</a>
+
+        <div id="loading" class="loading">
+            Загрузка лекции...
+        </div>
+
+        <div id="lecture-content" style="display: none;">
+            <div class="lecture-header">
+                <h1 class="lecture-title" id="lecture-title"></h1>
+                <div class="lecture-meta">
+                    <span id="lecture-duration"></span>
+                    <span id="lecture-theme"></span>
+                </div>
+            </div>
+
+            <div class="video-container" id="video-container" style="display: none;">
+                <video id="lecture-video" controls style="width: 100%; border-radius: 8px;">
+                    <source id="video-source" src="" type="video/mp4">
+                    Ваш браузер не поддерживает видео
+                </video>
+            </div>
+
+            <div class="content-container" id="content-container">
+                <!-- Контент лекции -->
+            </div>
+
+            <div class="tests-section">
+                <h2 class="tests-title">Тестирование</h2>
+                <div id="tests-list">
+                    <!-- Тесты будут загружены -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('../partials/footer') %>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        const lectureId = window.location.pathname.split('/')[2];
+
+        async function loadLecture() {
+            try {
+                const response = await fetch(`/api/lectures/${lectureId}`, {
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Лекция не найдена');
+                }
+
+                const data = await response.json();
+                const { lecture, progress } = data;
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('lecture-content').style.display = 'block';
+
+                // Заголовок
+                document.getElementById('lecture-title').textContent = lecture.title;
+                document.getElementById('lecture-duration').innerHTML = `⏱️ ${lecture.duration || 15} мин`;
+                document.getElementById('lecture-theme').innerHTML = `📚 ${lecture.theme.title}`;
+
+                // Видео
+                if (lecture.videoUrl) {
+                    document.getElementById('video-container').style.display = 'block';
+                    document.getElementById('video-source').src = lecture.videoUrl;
+                    document.getElementById('lecture-video').load();
+                }
+
+                // Контент (Markdown)
+                const contentHtml = marked.parse(lecture.content);
+                document.getElementById('content-container').innerHTML = contentHtml;
+
+                // Тесты
+                loadTests(lecture.tests, progress);
+            } catch (error) {
+                console.error('Ошибка загрузки лекции:', error);
+                document.getElementById('loading').textContent = 'Ошибка загрузки лекции';
+            }
+        }
+
+        function loadTests(tests, progress) {
+            const testsList = document.getElementById('tests-list');
+            testsList.innerHTML = '';
+
+            if (!tests || tests.length === 0) {
+                testsList.innerHTML = '<p style="text-align: center; color: #7f8c8d;">Тесты пока не добавлены</p>';
+                return;
+            }
+
+            tests.forEach(test => {
+                const card = createTestCard(test, progress);
+                testsList.appendChild(card);
+            });
+        }
+
+        function createTestCard(test, progress) {
+            const card = document.createElement('div');
+            card.className = 'test-card';
+
+            const score = test.testNumber === 1 ? progress.test1Score : progress.test2Score;
+            const isPassed = score !== null && score >= test.passingScore;
+            const isAvailable = test.testNumber === 1 || (progress.test1Score !== null && progress.test1Score < test.passingScore);
+
+            let scoreHtml = '';
+            if (score !== null) {
+                const scoreClass = isPassed ? 'score-passed' : 'score-failed';
+                scoreHtml = `<span class="test-score ${scoreClass}">${score}%</span>`;
+            }
+
+            const buttonClass = isAvailable ? 'primary' : 'secondary';
+            const buttonText = score !== null 
+                ? (isPassed ? 'Пройдено ✓' : 'Попробовать снова') 
+                : 'Начать тест';
+            const buttonDisabled = !isAvailable || isPassed;
+
+            card.innerHTML = `
+                <div class="test-header">
+                    <span class="test-number">Тест ${test.testNumber}</span>
+                    ${scoreHtml}
+                </div>
+                <p style="color: #7f8c8d; margin-bottom: 1rem;">
+                    Проходной балл: ${test.passingScore}% | Время: ${test.timeLimit || 10} мин
+                </p>
+                <button 
+                    class="test-button ${buttonClass}" 
+                    onclick="startTest(${test.id})"
+                    ${buttonDisabled ? 'disabled' : ''}
+                >
+                    ${buttonText}
+                </button>
+            `;
+
+            return card;
+        }
+
+        function startTest(testId) {
+            window.location.href = `/tests/${testId}`;
+        }
+
+        loadLecture();
+    </script>
+</body>
+</html>

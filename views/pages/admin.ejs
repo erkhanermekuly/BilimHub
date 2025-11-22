@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('../partials/head') %>
+    <link rel="stylesheet" href="/style/page/admin.css">
+    <title>Админ панель - BilimHub</title>
+</head>
+<body>
+    <%- include('../partials/header') %>
+
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>🛠️ Панель администратора</h1>
+            <span>Добро пожаловать, <%= user.name %>!</span>
+        </div>
+
+        <div id="loading" class="loading">
+            Загрузка данных...
+        </div>
+
+        <div id="admin-content" style="display: none;">
+            <div class="admin-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">📚</div>
+                    <div class="stat-value" id="themes-count">0</div>
+                    <div class="stat-label">Тем курсов</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📖</div>
+                    <div class="stat-value" id="lectures-count">0</div>
+                    <div class="stat-label">Лекций</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📝</div>
+                    <div class="stat-value" id="tests-count">0</div>
+                    <div class="stat-label">Тестов</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-value" id="users-count">0</div>
+                    <div class="stat-label">Пользователей</div>
+                </div>
+            </div>
+
+            <div class="admin-sections">
+                <div class="admin-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Темы курсов</h2>
+                        <button class="add-button" onclick="openThemeModal()">
+                            ➕ Добавить тему
+                        </button>
+                    </div>
+                    <div id="themes-list" class="items-list">
+                        <!-- Темы загружаются через JS -->
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Лекции</h2>
+                        <button class="add-button" onclick="openLectureModal()">
+                            ➕ Добавить лекцию
+                        </button>
+                    </div>
+                    <div id="lectures-list" class="items-list">
+                        <!-- Лекции загружаются через JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для темы -->
+    <div id="theme-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="theme-modal-title">Добавить тему</h3>
+                <button class="close-button" onclick="closeThemeModal()">✕</button>
+            </div>
+            <form id="theme-form">
+                <input type="hidden" id="theme-id">
+                <div class="form-group">
+                    <label for="theme-title">Название темы *</label>
+                    <input type="text" id="theme-title" required>
+                </div>
+                <div class="form-group">
+                    <label for="theme-description">Описание</label>
+                    <textarea id="theme-description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="theme-image">Изображение темы</label>
+                    <input type="file" id="theme-image-file" accept="image/*" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px;">
+                    <small style="color: #7f8c8d; display: block; margin-top: 0.5rem;">Загрузите изображение (jpg, png, gif, webp). Макс: 5MB</small>
+                    <div id="image-preview" style="margin-top: 1rem; display: none;">
+                        <img id="image-preview-img" src="" alt="Предпросмотр" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 6px;">
+                    </div>
+                    <input type="hidden" id="theme-image">
+                </div>
+                <div class="form-group">
+                    <label for="theme-order">Порядок</label>
+                    <input type="number" id="theme-order" value="0">
+                </div>
+                <button type="submit" class="submit-button">Сохранить</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно для лекции -->
+    <div id="lecture-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="lecture-modal-title">Добавить лекцию</h3>
+                <button class="close-button" onclick="closeLectureModal()">✕</button>
+            </div>
+            <form id="lecture-form">
+                <input type="hidden" id="lecture-id">
+                <div class="form-group">
+                    <label for="lecture-theme">Выберите тему *</label>
+                    <select id="lecture-theme" required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px;">
+                        <option value="">-- Выберите тему --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="lecture-title">Название лекции *</label>
+                    <input type="text" id="lecture-title" required>
+                </div>
+                <div class="form-group">
+                    <label for="lecture-content">Содержание (Markdown) *</label>
+                    <textarea id="lecture-content" required style="min-height: 250px;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="lecture-video">Видео файл</label>
+                    <input type="file" id="lecture-video-file" accept="video/*" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px;">
+                    <small style="color: #7f8c8d; display: block; margin-top: 0.5rem;">Загрузите видео (mp4, avi, mkv, mov, webm). Макс: 100MB</small>
+                    <div id="video-preview" style="margin-top: 1rem; display: none;">
+                        <video id="video-preview-player" controls style="width: 100%; max-height: 300px; border-radius: 6px;"></video>
+                    </div>
+                    <input type="hidden" id="lecture-video">
+                </div>
+                <div class="form-group">
+                    <label for="lecture-duration">Длительность (мин)</label>
+                    <input type="number" id="lecture-duration" value="15">
+                </div>
+                <div class="form-group">
+                    <label for="lecture-order">Порядок</label>
+                    <input type="number" id="lecture-order" value="0">
+                </div>
+                <button type="submit" class="submit-button">Сохранить</button>
+            </form>
+        </div>
+    </div>
+
+    <%- include('../partials/footer') %>
+
+    <script src="/js/admin.js"></script>
+</body>
+</html>

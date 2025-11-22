@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('../partials/head') %>
+    <link rel="stylesheet" href="/style/page/theme-detail.css">
+    <title>Лекции - BilimHub</title>
+</head>
+<body>
+    <%- include('../partials/header') %>
+
+    <div class="theme-container">
+        <a href="/themes" class="back-button">← Назад к курсам</a>
+
+        <div id="loading" class="loading">
+            Загрузка лекций...
+        </div>
+
+        <div id="theme-content" style="display: none;">
+            <div class="theme-header">
+                <h1 id="theme-title"></h1>
+                <p id="theme-description"></p>
+            </div>
+
+            <div id="lectures-list" class="lectures-list">
+                <!-- Лекции будут загружены через JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <%- include('../partials/footer') %>
+
+    <script>
+        const themeId = window.location.pathname.split('/')[2];
+
+        async function loadTheme() {
+            try {
+                const response = await fetch(`/api/themes/${themeId}`);
+                
+                if (!response.ok) {
+                    throw new Error('Тема не найдена');
+                }
+
+                const theme = await response.json();
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('theme-content').style.display = 'block';
+
+                document.getElementById('theme-title').textContent = theme.title;
+                document.getElementById('theme-description').textContent = theme.description;
+
+                const lecturesList = document.getElementById('lectures-list');
+                
+                if (theme.lectures && theme.lectures.length > 0) {
+                    theme.lectures.forEach((lecture, index) => {
+                        const card = createLectureCard(lecture, index + 1);
+                        lecturesList.appendChild(card);
+                    });
+                } else {
+                    lecturesList.innerHTML = '<p style="text-align: center; color: #7f8c8d;">Лекции пока не добавлены</p>';
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки темы:', error);
+                document.getElementById('loading').textContent = 'Ошибка загрузки темы';
+            }
+        }
+
+        function createLectureCard(lecture, number) {
+            const card = document.createElement('div');
+            card.className = 'lecture-card';
+            
+            const isLocked = lecture.isLocked || false; // TODO: проверка доступа
+            
+            if (isLocked) {
+                card.classList.add('locked');
+            } else {
+                card.onclick = () => window.location.href = `/lectures/${lecture.id}`;
+            }
+
+            card.innerHTML = `
+                <div class="lecture-number">${number}</div>
+                <div class="lecture-content">
+                    <h3 class="lecture-title">${lecture.title}</h3>
+                    <div class="lecture-meta">
+                        <span>⏱️ ${lecture.duration || 15} мин</span>
+                        <span class="lecture-status ${isLocked ? 'status-locked' : 'status-in-progress'}">
+                            <span class="status-icon">${isLocked ? '🔒' : '▶️'}</span>
+                            ${isLocked ? 'Заблокировано' : 'Доступно'}
+                        </span>
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        loadTheme();
+    </script>
+</body>
+</html>

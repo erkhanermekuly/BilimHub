@@ -1,0 +1,179 @@
+.lecture-container {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+.back-button {
+    display: inline-block;
+    margin-bottom: 2rem;
+    color: #3498db;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.lecture-header {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.lecture-title {
+    font-size: 2rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.lecture-meta {
+    display: flex;
+    gap: 2rem;
+    color: #7f8c8d;
+}
+
+.video-container {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.video-placeholder {
+    width: 100%;
+    height: 400px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.content-container {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.content-container h1 {
+    color: #2c3e50;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+.content-container h2 {
+    color: #34495e;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.content-container p {
+    line-height: 1.8;
+    color: #555;
+    margin-bottom: 1rem;
+}
+
+.content-container ul, .content-container ol {
+    padding-left: 2rem;
+    margin-bottom: 1rem;
+}
+
+.content-container li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+
+.tests-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.tests-title {
+    font-size: 1.5rem;
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+}
+
+.test-card {
+    border: 2px solid #ecf0f1;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: border-color 0.3s;
+}
+
+.test-card:hover {
+    border-color: #3498db;
+}
+
+.test-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.test-number {
+    font-weight: bold;
+    color: #3498db;
+}
+
+.test-score {
+    font-weight: bold;
+}
+
+.score-passed {
+    color: #27ae60;
+}
+
+.score-failed {
+    color: #e74c3c;
+}
+
+.test-button {
+    width: 100%;
+    padding: 1rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.test-button.primary {
+    background: #3498db;
+    color: white;
+}
+
+.test-button.primary:hover {
+    background: #2980b9;
+}
+
+.test-button.secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.test-button.secondary:hover {
+    background: #7f8c8d;
+}
+
+.test-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.loading {
+    text-align: center;
+    padding: 3rem;
+    font-size: 1.2rem;
+    color: #7f8c8d;
+}

@@ -34,16 +34,9 @@ module.exports = {
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
     });
-
-    // Создаем индекс для email для быстрого поиска
-    await queryInterface.addIndex('users', ['email'], {
-      name: 'users_email_index',
-      unique: true
-    });
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.removeIndex('users', 'users_email_index');
     await queryInterface.dropTable('users');
   }
 };
