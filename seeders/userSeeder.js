@@ -3,7 +3,6 @@ const User = require('../models/User');
 
 const seedUsers = async () => {
     try {
-        // Проверяем, есть ли уже пользователи
         const existingUsers = await User.count();
         
         if (existingUsers > 0) {
@@ -11,12 +10,10 @@ const seedUsers = async () => {
             return;
         }
 
-        // Хешируем пароли
         const password1 = await bcrypt.hash('password123', 10);
         const password2 = await bcrypt.hash('admin123', 10);
         const password3 = await bcrypt.hash('user123', 10);
 
-        // Создаем тестовых пользователей
         const users = await User.bulkCreate([
             {
                 name: 'Администратор',

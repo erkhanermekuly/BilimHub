@@ -1,6 +1,5 @@
 const { Test, Question, Answer, Lecture, UserProgress, UserRating } = require('../models');
 
-// Получить тест по ID с вопросами
 exports.getTestById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -22,7 +21,7 @@ exports.getTestById = async (req, res) => {
           include: [{
             model: Answer,
             as: 'answers',
-            attributes: ['id', 'answer', 'order'] // Не показываем isCorrect
+            attributes: ['id', 'answer', 'order'] 
           }],
           order: [['order', 'ASC']]
         }
@@ -33,7 +32,6 @@ exports.getTestById = async (req, res) => {
       return res.status(404).json({ error: 'Тест не найден' });
     }
     
-    // Проверяем доступ к тесту
     const hasAccess = await checkTestAccess(userId, test);
     
     if (!hasAccess) {
@@ -47,7 +45,6 @@ exports.getTestById = async (req, res) => {
   }
 };
 
-// Проверка доступа к тесту
 async function checkTestAccess(userId, test) {
   const progress = await UserProgress.findOne({
     where: {
@@ -56,35 +53,29 @@ async function checkTestAccess(userId, test) {
     }
   });
   
-  // Если нет прогресса, доступен только тест 1
   if (!progress) {
     return test.testNumber === 1;
   }
   
-  // Если тест 1 уже пройден с проходным баллом, тест 2 не нужен
   if (progress.test1Score >= test.passingScore && test.testNumber === 2) {
     return false;
   }
   
-  // Если тест 1 не пройден, доступен тест 2
   if (progress.test1Score < test.passingScore && test.testNumber === 2) {
     return true;
   }
   
-  // Тест 1 всегда доступен
   return test.testNumber === 1;
 }
 
-// Проверка доступа для публичного маршрута
 exports.checkTestAccessPublic = async (userId, test) => {
   return await checkTestAccess(userId, test);
 };
 
-// Отправить ответы на тест
 exports.submitTest = async (req, res) => {
   try {
     const { id } = req.params;
-    const { answers } = req.body; // { questionId: [answerId1, answerId2...] }
+    const { answers } = req.body; 
     const userId = req.session.user?.id;
     
     if (!userId) {
@@ -110,7 +101,6 @@ exports.submitTest = async (req, res) => {
       return res.status(404).json({ error: 'Тест не найден' });
     }
     
-    // Подсчитываем баллы
     let totalScore = 0;
     let maxScore = 0;
     const results = [];
@@ -123,7 +113,6 @@ exports.submitTest = async (req, res) => {
         .filter(a => a.isCorrect)
         .map(a => a.id);
       
-      // Проверяем правильность ответа
       const isCorrect = 
         userAnswerIds.length === correctAnswerIds.length &&
         userAnswerIds.every(id => correctAnswerIds.includes(id));
@@ -139,10 +128,8 @@ exports.submitTest = async (req, res) => {
       });
     }
     
-    // Вычисляем процент
     const scorePercentage = Math.round((totalScore / maxScore) * 100);
     
-    // Обновляем прогресс пользователя
     let progress = await UserProgress.findOne({
       where: {
         userId,
@@ -159,12 +146,10 @@ exports.submitTest = async (req, res) => {
       });
     }
     
-    // Обновляем результаты теста
     if (test.testNumber === 1) {
       progress.test1Score = scorePercentage;
       progress.attempts += 1;
       
-      // Если тест 1 пройден, проверяем проходной балл
       if (scorePercentage >= test.passingScore) {
         progress.isCompleted = true;
         progress.completedAt = new Date();
@@ -175,7 +160,6 @@ exports.submitTest = async (req, res) => {
       progress.test2Score = scorePercentage;
       progress.attempts += 1;
       
-      // Тест 2 - это вторая попытка
       if (scorePercentage >= test.passingScore) {
         progress.isCompleted = true;
         progress.completedAt = new Date();
@@ -203,7 +187,6 @@ exports.submitTest = async (req, res) => {
   }
 };
 
-// Разблокировать следующую лекцию
 async function unlockNextLecture(userId, lectureId) {
   const currentLecture = await Lecture.findByPk(lectureId);
   
@@ -217,7 +200,6 @@ async function unlockNextLecture(userId, lectureId) {
   
   const currentIndex = lectures.findIndex(l => l.id === lectureId);
   
-  // Если есть следующая лекция, создаем запись прогресса для неё
   if (currentIndex < lectures.length - 1) {
     const nextLecture = lectures[currentIndex + 1];
     console.log(`🔓 Next lecture unlocked: ${nextLecture.title}`);
@@ -226,7 +208,6 @@ async function unlockNextLecture(userId, lectureId) {
   }
 }
 
-// Обновить рейтинг пользователя
 async function updateUserRating(userId, score) {
   let rating = await UserRating.findOne({ where: { userId } });
   
@@ -243,7 +224,6 @@ async function updateUserRating(userId, score) {
   rating.completedTests += 1;
   rating.completedLectures += 1;
   
-  // Определяем уровень
   if (rating.totalScore >= 1000) {
     rating.level = 'Эксперт';
   } else if (rating.totalScore >= 500) {
@@ -259,7 +239,6 @@ async function updateUserRating(userId, score) {
   console.log(`📊 Rating updated for user ${userId}: ${rating.totalScore} points, level: ${rating.level}`);
 }
 
-// Создать тест
 exports.createTest = async (req, res) => {
   try {
     const { lectureId } = req.params;
@@ -274,7 +253,6 @@ exports.createTest = async (req, res) => {
       return res.status(404).json({ error: 'Лекция не найдена' });
     }
     
-    // Создаем тест
     const test = await Test.create({
       lectureId,
       title,
@@ -283,7 +261,6 @@ exports.createTest = async (req, res) => {
       timeLimit
     });
     
-    // Создаем вопросы и ответы
     if (questions && Array.isArray(questions)) {
       for (const q of questions) {
         const question = await Question.create({
@@ -315,7 +292,6 @@ exports.createTest = async (req, res) => {
   }
 };
 
-// Обновить тест
 exports.updateTest = async (req, res) => {
   try {
     const { id } = req.params;
@@ -326,17 +302,14 @@ exports.updateTest = async (req, res) => {
       return res.status(404).json({ error: 'Тест не найден' });
     }
 
-    // Обновляем информацию теста
     test.title = title;
     test.testNumber = testNumber;
     test.passingScore = passingScore || 70;
     test.timeLimit = timeLimit;
     await test.save();
 
-    // Удаляем старые вопросы и ответы
     await Question.destroy({ where: { testId: test.id } });
 
-    // Создаем новые вопросы и ответы
     if (questions && Array.isArray(questions)) {
       for (const q of questions) {
         const question = await Question.create({
@@ -368,7 +341,6 @@ exports.updateTest = async (req, res) => {
   }
 };
 
-// Удалить тест
 exports.deleteTest = async (req, res) => {
   try {
     const { id } = req.params;
@@ -378,7 +350,6 @@ exports.deleteTest = async (req, res) => {
       return res.status(404).json({ error: 'Тест не найден' });
     }
 
-    // Удаляем все вопросы и ответы (каскадное удаление)
     await Question.destroy({ where: { testId: test.id } });
     await test.destroy();
 
@@ -390,7 +361,6 @@ exports.deleteTest = async (req, res) => {
   }
 };
 
-// Получить рейтинг пользователей
 exports.getRatings = async (req, res) => {
   try {
     const ratings = await UserRating.findAll({
@@ -403,7 +373,6 @@ exports.getRatings = async (req, res) => {
       limit: 100
     });
     
-    // Обновляем ранги
     for (let i = 0; i < ratings.length; i++) {
       ratings[i].rank = i + 1;
       await ratings[i].save();

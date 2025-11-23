@@ -1,6 +1,5 @@
-const { Theme, Lecture } = require('../models');
+const { Theme, Lecture, Test } = require('../models');
 
-// Получить все темы
 exports.getAllThemes = async (req, res) => {
   try {
     const themes = await Theme.findAll({
@@ -11,7 +10,14 @@ exports.getAllThemes = async (req, res) => {
         as: 'lectures',
         where: { isActive: true },
         required: false,
-        order: [['order', 'ASC']]
+        order: [['order', 'ASC']],
+        include: [{
+          model: Test,
+          as: 'tests',
+          where: { isActive: true },
+          required: false,
+          order: [['order', 'ASC']]
+        }]
       }]
     });
     
@@ -22,7 +28,6 @@ exports.getAllThemes = async (req, res) => {
   }
 };
 
-// Получить тему по ID
 exports.getThemeById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -33,7 +38,14 @@ exports.getThemeById = async (req, res) => {
         as: 'lectures',
         where: { isActive: true },
         required: false,
-        order: [['order', 'ASC']]
+        order: [['order', 'ASC']],
+        include: [{
+          model: Test,
+          as: 'tests',
+          where: { isActive: true },
+          required: false,
+          order: [['order', 'ASC']]
+        }]
       }]
     });
     
@@ -48,7 +60,6 @@ exports.getThemeById = async (req, res) => {
   }
 };
 
-// Создать новую тему
 exports.createTheme = async (req, res) => {
   try {
     const { title, description, image, order } = req.body;
@@ -72,7 +83,6 @@ exports.createTheme = async (req, res) => {
   }
 };
 
-// Обновить тему
 exports.updateTheme = async (req, res) => {
   try {
     const { id } = req.params;
@@ -100,7 +110,6 @@ exports.updateTheme = async (req, res) => {
   }
 };
 
-// Удалить тему
 exports.deleteTheme = async (req, res) => {
   try {
     const { id } = req.params;

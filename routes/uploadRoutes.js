@@ -3,7 +3,6 @@ const router = express.Router();
 const { uploadVideo, uploadImage } = require('../config/upload');
 const { isAdminAPI } = require('../middleware/auth');
 
-// Загрузка видео
 router.post('/upload/video', isAdminAPI, uploadVideo.single('video'), (req, res) => {
     try {
         if (!req.file) {
@@ -23,7 +22,6 @@ router.post('/upload/video', isAdminAPI, uploadVideo.single('video'), (req, res)
     }
 });
 
-// Загрузка изображения
 router.post('/upload/image', isAdminAPI, uploadImage.single('image'), (req, res) => {
     try {
         if (!req.file) {

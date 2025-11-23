@@ -31,10 +31,10 @@ const Test = sequelize.define('Test', {
     passingScore: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        defaultValue: 70 // процент для прохождения
+        defaultValue: 70 
     },
     timeLimit: {
-        type: DataTypes.INTEGER, // в минутах
+        type: DataTypes.INTEGER, 
         allowNull: true
     },
     isActive: {

@@ -3,7 +3,6 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    // Создаем темы
     await queryInterface.bulkInsert('themes', [
       {
         title: 'Основы программирования',
@@ -25,7 +24,6 @@ module.exports = {
       }
     ]);
 
-    // Лекции для темы "Основы программирования"
     await queryInterface.bulkInsert('lectures', [
       {
         themeId: 1,

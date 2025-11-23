@@ -1,12 +1,19 @@
 // Загрузка данных
 let themesData = [];
 let lecturesData = [];
+let usersData = [];
 
 async function loadAdminData() {
     try {
         // Загрузка тем
         const themesResponse = await fetch('/api/themes');
         themesData = await themesResponse.json();
+        
+        // Загрузка пользователей
+        const usersResponse = await fetch('/api/user/all', {
+            credentials: 'include'
+        });
+        usersData = await usersResponse.json();
         
         // Подсчет статистики
         let totalLectures = 0;
@@ -27,11 +34,13 @@ async function loadAdminData() {
         document.getElementById('themes-count').textContent = themesData.length;
         document.getElementById('lectures-count').textContent = totalLectures;
         document.getElementById('tests-count').textContent = totalTests;
+        document.getElementById('users-count').textContent = usersData.length;
         
         // Отображение списков
         renderThemes();
         renderLectures();
         renderTests();
+        renderUsers();
         
         document.getElementById('loading').style.display = 'none';
         document.getElementById('admin-content').style.display = 'block';
@@ -806,6 +815,73 @@ document.getElementById('test-modal').addEventListener('click', (e) => {
         closeTestModal();
     }
 });
+
+// ==================== УПРАВЛЕНИЕ ПОЛЬЗОВАТЕЛЯМИ ====================
+
+// Отображение пользователей
+function renderUsers() {
+    const container = document.getElementById('users-list');
+    container.innerHTML = '';
+    
+    if (usersData.length === 0) {
+        container.innerHTML = '<div class="empty-state">Пользователи не найдены</div>';
+        return;
+    }
+    
+    usersData.forEach(user => {
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        
+        const roleText = user.role === 'admin' ? 'Админ' : 'Пользователь';
+        
+        const createdDate = new Date(user.createdAt).toLocaleDateString('ru-RU', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        
+        card.innerHTML = `
+            <div class="item-header">
+                <div class="item-title">${user.name}</div>
+                <div class="item-actions">
+                    ${user.role !== 'admin' ? `<button class="action-button action-delete" onclick="deleteUser(${user.id}, '${user.name}')">🗑️ Удалить</button>` : ''}
+                </div>
+            </div>
+            <div class="item-meta" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <div>${user.email}</div>
+                <div>${roleText}</div>
+                <div>${createdDate}</div>
+            </div>
+        `;
+        
+        container.appendChild(card);
+    });
+}
+
+// Удалить пользователя
+async function deleteUser(userId, userName) {
+    if (!confirm(`Вы уверены, что хотите удалить пользователя "${userName}"?`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/user/${userId}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            alert('Пользователь успешно удален');
+            loadAdminData();
+        } else {
+            const error = await response.json();
+            alert('Ошибка: ' + error.error);
+        }
+    } catch (error) {
+        console.error('Ошибка удаления пользователя:', error);
+        alert('Произошла ошибка при удалении пользователя');
+    }
+}
 
 // Загрузка данных при открытии страницы
 loadAdminData();

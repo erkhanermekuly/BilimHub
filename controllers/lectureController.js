@@ -1,6 +1,5 @@
 const { Lecture, Theme, Test, UserProgress } = require('../models');
 
-// Получить все лекции темы
 exports.getLecturesByTheme = async (req, res) => {
   try {
     const { themeId } = req.params;
@@ -26,7 +25,6 @@ exports.getLecturesByTheme = async (req, res) => {
   }
 };
 
-// Получить лекцию по ID
 exports.getLectureById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -55,14 +53,12 @@ exports.getLectureById = async (req, res) => {
       return res.status(404).json({ error: 'Лекция не найдена' });
     }
     
-    // Проверяем доступ к лекции
     const hasAccess = await checkLectureAccess(userId, lecture);
     
     if (!hasAccess) {
       return res.status(403).json({ error: 'Доступ к лекции закрыт. Завершите предыдущую лекцию.' });
     }
     
-    // Получаем прогресс пользователя
     const progress = await UserProgress.findOne({
       where: {
         userId,
@@ -80,9 +76,7 @@ exports.getLectureById = async (req, res) => {
   }
 };
 
-// Проверка доступа к лекции
 async function checkLectureAccess(userId, lecture) {
-  // Находим все лекции темы
   const lectures = await Lecture.findAll({
     where: { 
       themeId: lecture.themeId,
@@ -91,18 +85,15 @@ async function checkLectureAccess(userId, lecture) {
     order: [['order', 'ASC']]
   });
   
-  // Первая лекция всегда доступна
   if (lectures[0].id === lecture.id) {
     return true;
   }
   
-  // Находим предыдущую лекцию
   const currentIndex = lectures.findIndex(l => l.id === lecture.id);
   if (currentIndex === -1) return false;
   
   const previousLecture = lectures[currentIndex - 1];
   
-  // Проверяем, завершена ли предыдущая лекция
   const previousProgress = await UserProgress.findOne({
     where: {
       userId,
@@ -114,7 +105,6 @@ async function checkLectureAccess(userId, lecture) {
   return !!previousProgress;
 }
 
-// Создать новую лекцию
 exports.createLecture = async (req, res) => {
   try {
     const { themeId } = req.params;
@@ -146,7 +136,6 @@ exports.createLecture = async (req, res) => {
   }
 };
 
-// Обновить лекцию
 exports.updateLecture = async (req, res) => {
   try {
     const { id } = req.params;
@@ -175,7 +164,6 @@ exports.updateLecture = async (req, res) => {
   }
 };
 
-// Удалить лекцию
 exports.deleteLecture = async (req, res) => {
   try {
     const { id } = req.params;

@@ -127,7 +127,7 @@ app.get('/contacts', (req, res) => {
 // Админ-панель (только для администраторов)
 const { isAdmin } = require('./middleware/auth');
 app.get('/admin', isAdmin, (req, res) => {
-    res.render('pages/admin');
+    res.render('pages/admin', { user: req.session.user });
 });
 
 // Подключение роутов

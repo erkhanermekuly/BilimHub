@@ -5,7 +5,6 @@ const bcrypt = require('bcrypt');
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    // Хешируем пароли
     const password1 = await bcrypt.hash('password123', 10);
     const password2 = await bcrypt.hash('admin123', 10);
     const password3 = await bcrypt.hash('user123', 10);

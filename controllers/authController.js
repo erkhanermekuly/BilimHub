@@ -126,7 +126,7 @@ exports.login = async (req, res) => {
 
         res.cookie('token', token, {
             httpOnly: true,
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 дней
+            maxAge: 7 * 24 * 60 * 60 * 1000, 
             secure: process.env.NODE_ENV === 'production'
         });
 
@@ -139,7 +139,6 @@ exports.login = async (req, res) => {
 
         console.log('Вход успешен, редирект на главную');
         
-        // Если администратор, редирект на панель управления
         if (user.role === 'admin') {
             return res.redirect('/admin');
         }
