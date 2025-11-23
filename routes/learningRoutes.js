@@ -23,6 +23,8 @@ router.delete('/lectures/:id', isAdminAPI, lectureController.deleteLecture);
 router.get('/tests/:id', isAuthenticatedAPI, testController.getTestById);
 router.post('/tests/:id/submit', isAuthenticatedAPI, testController.submitTest);
 router.post('/lectures/:lectureId/tests', isAdminAPI, testController.createTest);
+router.put('/tests/:id', isAdminAPI, testController.updateTest);
+router.delete('/tests/:id', isAdminAPI, testController.deleteTest);
 
 // Рейтинг
 router.get('/ratings', testController.getRatings);

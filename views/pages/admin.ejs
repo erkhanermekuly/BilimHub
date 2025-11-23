@@ -66,6 +66,18 @@
                         <!-- Лекции загружаются через JS -->
                     </div>
                 </div>
+
+                <div class="admin-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Тесты</h2>
+                        <button class="add-button" onclick="openTestModal()">
+                            ➕ Добавить тест
+                        </button>
+                    </div>
+                    <div id="tests-list" class="items-list">
+                        <!-- Тесты загружаются через JS -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -146,6 +158,52 @@
                     <input type="number" id="lecture-order" value="0">
                 </div>
                 <button type="submit" class="submit-button">Сохранить</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно для теста -->
+    <div id="test-modal" class="modal">
+        <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header" style="position: sticky; top: 0; background: white; z-index: 10;">
+                <h3 class="modal-title" id="test-modal-title">Добавить тест</h3>
+                <button class="close-button" onclick="closeTestModal()">✕</button>
+            </div>
+            <form id="test-form" style="padding: 2rem;">
+                <input type="hidden" id="test-id">
+                <div class="form-group">
+                    <label for="test-lecture">Выберите лекцию *</label>
+                    <select id="test-lecture" required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px;">
+                        <option value="">-- Выберите лекцию --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="test-title">Название теста *</label>
+                    <input type="text" id="test-title" required>
+                </div>
+                <div class="form-group">
+                    <label for="test-number">Номер теста (1 или 2) *</label>
+                    <select id="test-number" required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px;">
+                        <option value="1">Тест 1 (основной)</option>
+                        <option value="2">Тест 2 (переэкзамен)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="test-passing-score">Минимальный балл для прохождения (%) *</label>
+                    <input type="number" id="test-passing-score" min="0" max="100" value="70" required>
+                </div>
+                <div class="form-group">
+                    <label for="test-time-limit">Время на тест (мин)</label>
+                    <input type="number" id="test-time-limit" min="1" value="30">
+                </div>
+
+                <hr style="margin: 2rem 0;">
+                <h4 style="margin-bottom: 1rem;">Вопросы</h4>
+                <div id="questions-container" style="margin-bottom: 1rem;"></div>
+                <button type="button" class="add-button" onclick="addQuestion()">➕ Добавить вопрос</button>
+
+                <hr style="margin: 2rem 0;">
+                <button type="submit" class="submit-button">Сохранить тест</button>
             </form>
         </div>
     </div>

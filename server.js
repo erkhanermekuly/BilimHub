@@ -68,6 +68,52 @@ app.get('/lectures/:id', isAuthenticated, (req, res) => {
     res.render('pages/lecture');
 });
 
+// Страница теста
+app.get('/tests/:id', isAuthenticated, async (req, res) => {
+    try {
+        const testController = require('./controllers/testController');
+        const { Test, Question, Answer, Lecture } = require('./models');
+        
+        const test = await Test.findByPk(req.params.id, {
+            include: [{
+                model: Question,
+                as: 'questions',
+                include: [{
+                    model: Answer,
+                    as: 'answers',
+                    attributes: ['id', 'answer', 'order']
+                }],
+                order: [['order', 'ASC']]
+            }]
+        });
+        
+        if (!test) {
+            return res.status(404).render('pages/error', { 
+                message: 'Тест не найден',
+                user: req.session.user 
+            });
+        }
+        
+        // Проверяем доступ к тесту
+        const hasAccess = await testController.checkTestAccessPublic(req.session.user?.id, test);
+        
+        if (!hasAccess) {
+            return res.status(403).render('pages/error', { 
+                message: 'Доступ к тесту закрыт',
+                user: req.session.user 
+            });
+        }
+        
+        res.render('pages/test', { test });
+    } catch (error) {
+        console.error('Ошибка при загрузке теста:', error);
+        res.status(500).render('pages/error', { 
+            message: 'Ошибка при загрузке теста',
+            user: req.session.user 
+        });
+    }
+});
+
 // Страница рейтинга
 app.get('/rating', (req, res) => {
     res.render('pages/rating');

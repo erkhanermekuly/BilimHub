@@ -30,7 +30,11 @@ exports.getLecturesByTheme = async (req, res) => {
 exports.getLectureById = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.user.id;
+    const userId = req.session.user?.id;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'Не авторизован' });
+    }
     
     const lecture = await Lecture.findByPk(id, {
       include: [

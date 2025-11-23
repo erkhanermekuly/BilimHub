@@ -4,7 +4,11 @@ const { Test, Question, Answer, Lecture, UserProgress, UserRating } = require('.
 exports.getTestById = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.user.id;
+    const userId = req.session.user?.id;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'Не авторизован' });
+    }
     
     const test = await Test.findByPk(id, {
       include: [
@@ -71,12 +75,21 @@ async function checkTestAccess(userId, test) {
   return test.testNumber === 1;
 }
 
+// Проверка доступа для публичного маршрута
+exports.checkTestAccessPublic = async (userId, test) => {
+  return await checkTestAccess(userId, test);
+};
+
 // Отправить ответы на тест
 exports.submitTest = async (req, res) => {
   try {
     const { id } = req.params;
     const { answers } = req.body; // { questionId: [answerId1, answerId2...] }
-    const userId = req.user.id;
+    const userId = req.session.user?.id;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'Не авторизован' });
+    }
     
     if (!answers || typeof answers !== 'object') {
       return res.status(400).json({ error: 'Неверный формат ответов' });
@@ -299,6 +312,81 @@ exports.createTest = async (req, res) => {
   } catch (error) {
     console.error('❌ Error creating test:', error);
     res.status(500).json({ error: 'Ошибка при создании теста' });
+  }
+};
+
+// Обновить тест
+exports.updateTest = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, testNumber, passingScore, timeLimit, questions } = req.body;
+
+    const test = await Test.findByPk(id);
+    if (!test) {
+      return res.status(404).json({ error: 'Тест не найден' });
+    }
+
+    // Обновляем информацию теста
+    test.title = title;
+    test.testNumber = testNumber;
+    test.passingScore = passingScore || 70;
+    test.timeLimit = timeLimit;
+    await test.save();
+
+    // Удаляем старые вопросы и ответы
+    await Question.destroy({ where: { testId: test.id } });
+
+    // Создаем новые вопросы и ответы
+    if (questions && Array.isArray(questions)) {
+      for (const q of questions) {
+        const question = await Question.create({
+          testId: test.id,
+          question: q.question,
+          type: q.type || 'single',
+          points: q.points || 1,
+          order: q.order || 0
+        });
+
+        if (q.answers && Array.isArray(q.answers)) {
+          for (const a of q.answers) {
+            await Answer.create({
+              questionId: question.id,
+              answer: a.answer,
+              isCorrect: a.isCorrect,
+              order: a.order || 0
+            });
+          }
+        }
+      }
+    }
+
+    console.log('✅ Test updated:', test.title);
+    res.json(test);
+  } catch (error) {
+    console.error('❌ Error updating test:', error);
+    res.status(500).json({ error: 'Ошибка при обновлении теста' });
+  }
+};
+
+// Удалить тест
+exports.deleteTest = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const test = await Test.findByPk(id);
+    if (!test) {
+      return res.status(404).json({ error: 'Тест не найден' });
+    }
+
+    // Удаляем все вопросы и ответы (каскадное удаление)
+    await Question.destroy({ where: { testId: test.id } });
+    await test.destroy();
+
+    console.log('✅ Test deleted:', test.title);
+    res.json({ message: 'Тест успешно удален' });
+  } catch (error) {
+    console.error('❌ Error deleting test:', error);
+    res.status(500).json({ error: 'Ошибка при удалении теста' });
   }
 };
 

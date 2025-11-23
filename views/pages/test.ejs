@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('../partials/head') %>
+    <link rel="stylesheet" href="/style/page/test.css">
+    <title><%= test.title %> - BilimHub</title>
+</head>
+<body>
+    <%- include('../partials/header') %>
+
+    <div class="test-container">
+        <div class="test-header">
+            <h1>📝 <%= test.title %></h1>
+            <div class="test-info">
+                <span class="info-item">⏱️ Время: <span id="timer">30:00</span></span>
+                <span class="info-item">✓ Проходной балл: <%= test.passingScore %>%</span>
+                <span class="info-item">❓ Вопросов: <%= test.questions.length %></span>
+            </div>
+        </div>
+
+        <form id="test-form" class="test-form">
+            <% test.questions.forEach((question, qIndex) => { %>
+                <div class="question-block" data-question-id="<%= question.id %>">
+                    <div class="question-header">
+                        <h3 class="question-number">Вопрос <%= qIndex + 1 %> (<%= question.points %> баллов)</h3>
+                        <span class="question-type">
+                            <%= question.type === 'multiple' ? 'Несколько ответов' : 'Один ответ' %>
+                        </span>
+                    </div>
+                    
+                    <p class="question-text"><%= question.question %></p>
+                    
+                    <div class="answers-list">
+                        <% question.answers.forEach((answer, aIndex) => { %>
+                            <% const inputType = question.type === 'multiple' ? 'checkbox' : 'radio'; %>
+                            <% const inputName = 'question_' + question.id; %>
+                            <label class="answer-item">
+                                <input 
+                                    type="<%= inputType %>" 
+                                    name="<%= inputName %>" 
+                                    value="<%= answer.id %>"
+                                    class="answer-input"
+                                >
+                                <span class="answer-label"><%= answer.answer %></span>
+                            </label>
+                        <% }); %>
+                    </div>
+                </div>
+            <% }); %>
+
+            <div class="form-actions">
+                <button type="button" class="cancel-button" onclick="window.history.back()">← Вернуться</button>
+                <button type="submit" class="submit-button">✓ Отправить ответы</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Модальное окно с результатами -->
+    <div id="results-modal" class="modal">
+        <div class="modal-content modal-results">
+            <div class="modal-header">
+                <h2>Результаты теста</h2>
+            </div>
+            <div class="results-content">
+                <div class="score-display" id="score-display"></div>
+                <div class="results-details" id="results-details"></div>
+                <div class="modal-actions">
+                    <button class="action-button" onclick="window.location.href='<%= `/lectures/${test.lectureId}` %>'">
+                        ← Вернуться к лекции
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('../partials/footer') %>
+
+    <script>
+        const testData = <%- JSON.stringify(test) %>;
+        let timeRemaining = testData.timeLimit * 60 || 1800;
+        
+        function updateTimer() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            document.getElementById('timer').textContent = 
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            
+            if (timeRemaining > 0) {
+                timeRemaining--;
+                setTimeout(updateTimer, 1000);
+            } else {
+                alert('Время истекло!');
+                document.getElementById('test-form').submit();
+            }
+        }
+
+        // Запуск таймера
+        updateTimer();
+
+        // Обработка отправки формы
+        document.getElementById('test-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Собираем ответы
+            const answers = {};
+            const questions = document.querySelectorAll('.question-block');
+
+            questions.forEach(questionDiv => {
+                const questionId = parseInt(questionDiv.dataset.questionId);
+                const inputName = `question_${questionId}`;
+                const inputs = document.querySelectorAll(`input[name="${inputName}"]:checked`);
+
+                if (inputs.length > 0) {
+                    answers[questionId] = Array.from(inputs).map(input => parseInt(input.value));
+                } else {
+                    answers[questionId] = [];
+                }
+            });
+
+            try {
+                const response = await fetch(`/api/tests/<%= test.id %>/submit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ answers })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    alert('Ошибка: ' + error.error);
+                    return;
+                }
+
+                const result = await response.json();
+                showResults(result);
+            } catch (error) {
+                console.error('Ошибка отправки теста:', error);
+                alert('Произошла ошибка при отправке теста');
+            }
+        });
+
+        // Показать результаты
+        function showResults(result) {
+            const scoreDisplay = document.getElementById('score-display');
+            const detailsDiv = document.getElementById('results-details');
+            
+            const passed = result.passed;
+            const scorePercentage = result.score;
+            const passingScore = result.passingScore;
+            
+            const statusEmoji = passed ? '✅' : '❌';
+            const statusText = passed ? 'Тест пройден!' : 'Тест не пройден';
+            const statusClass = passed ? 'passed' : 'failed';
+
+            scoreDisplay.innerHTML = `
+                <div class="score-result ${statusClass}">
+                    <div class="status-emoji">${statusEmoji}</div>
+                    <div class="status-text">${statusText}</div>
+                    <div class="score-value">${scorePercentage}%</div>
+                    <div class="score-info">Проходной балл: ${passingScore}%</div>
+                </div>
+            `;
+
+            let detailsHtml = '<div class="results-breakdown">';
+            
+            if (result.results && Array.isArray(result.results)) {
+                result.results.forEach((resultItem, index) => {
+                    const question = testData.questions.find(q => q.id === resultItem.questionId);
+                    const isCorrect = resultItem.isCorrect;
+                    const icon = isCorrect ? '✅' : '❌';
+                    const className = isCorrect ? 'correct' : 'incorrect';
+
+                    detailsHtml += `
+                        <div class="result-item ${className}">
+                            <div class="result-header">
+                                <span class="result-icon">${icon}</span>
+                                <span class="result-question">Вопрос ${index + 1}</span>
+                            </div>
+                            <p class="result-question-text">${question?.question || 'Вопрос не найден'}</p>
+                            ${!isCorrect ? `
+                                <div class="correct-answer">
+                                    <strong>Правильные ответы:</strong>
+                                    <ul>
+                                        ${resultItem.correctAnswers.map(answerId => {
+                                            const answer = question?.answers?.find(a => a.id === answerId);
+                                            return '<li>' + (answer?.answer || 'Ответ не найден') + '</li>';
+                                        }).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+            }
+
+            if (result.needTest2) {
+                detailsHtml += `
+                    <div class="info-message">
+                        💡 Вы можете пройти Тест 2 (переэкзамен) для повышения балла
+                    </div>
+                `;
+            }
+
+            detailsHtml += '</div>';
+            detailsDiv.innerHTML = detailsHtml;
+
+            // Показать модальное окно
+            document.getElementById('results-modal').classList.add('active');
+        }
+    </script>
+</body>
+</html>

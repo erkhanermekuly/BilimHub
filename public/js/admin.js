@@ -31,6 +31,7 @@ async function loadAdminData() {
         // Отображение списков
         renderThemes();
         renderLectures();
+        renderTests();
         
         document.getElementById('loading').style.display = 'none';
         document.getElementById('admin-content').style.display = 'block';
@@ -414,6 +415,395 @@ document.getElementById('theme-modal').addEventListener('click', (e) => {
 document.getElementById('lecture-modal').addEventListener('click', (e) => {
     if (e.target.id === 'lecture-modal') {
         closeLectureModal();
+    }
+});
+
+// ==================== УПРАВЛЕНИЕ ТЕСТАМИ ====================
+
+let testsData = [];
+
+// Отображение тестов
+function renderTests() {
+    const container = document.getElementById('tests-list');
+    container.innerHTML = '';
+    
+    // Собираем все тесты с информацией о лекции
+    testsData = [];
+    themesData.forEach(theme => {
+        if (theme.lectures) {
+            theme.lectures.forEach(lecture => {
+                if (lecture.tests) {
+                    lecture.tests.forEach(test => {
+                        testsData.push({
+                            ...test,
+                            lectureName: lecture.title,
+                            themeName: theme.title
+                        });
+                    });
+                }
+            });
+        }
+    });
+    
+    if (testsData.length === 0) {
+        container.innerHTML = '<div class="empty-state">Тесты не добавлены</div>';
+        return;
+    }
+    
+    testsData.forEach(test => {
+        const questionsCount = test.questions ? test.questions.length : 0;
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        card.innerHTML = `
+            <div class="item-header">
+                <div class="item-title">${test.title}</div>
+                <div class="item-actions">
+                    <button class="action-button action-edit" onclick="editTest(${test.id})">✏️ Редактировать</button>
+                    <button class="action-button action-delete" onclick="deleteTest(${test.id})">🗑️ Удалить</button>
+                </div>
+            </div>
+            <div class="item-meta">
+                Лекция: ${test.lectureName} | Тест ${test.testNumber} | 
+                Вопросов: ${questionsCount} | Проходной балл: ${test.passingScore}%
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+// Открыть модальное окно для добавления теста
+function openTestModal() {
+    document.getElementById('test-modal-title').textContent = 'Добавить тест';
+    document.getElementById('test-form').reset();
+    document.getElementById('test-id').value = '';
+    document.getElementById('questions-container').innerHTML = '';
+    
+    // Обновить селект лекций
+    updateLectureSelect();
+    
+    // Добавить первый пустой вопрос
+    addQuestion();
+    
+    document.getElementById('test-modal').classList.add('active');
+}
+
+// Закрыть модальное окно для теста
+function closeTestModal() {
+    document.getElementById('test-modal').classList.remove('active');
+}
+
+// Обновить селект лекций
+function updateLectureSelect() {
+    const select = document.getElementById('test-lecture');
+    select.innerHTML = '<option value="">-- Выберите лекцию --</option>';
+    
+    themesData.forEach(theme => {
+        if (theme.lectures) {
+            theme.lectures.forEach(lecture => {
+                const option = document.createElement('option');
+                option.value = lecture.id;
+                option.textContent = `${theme.title} → ${lecture.title}`;
+                select.appendChild(option);
+            });
+        }
+    });
+}
+
+// Добавить новый вопрос в форму
+function addQuestion() {
+    const container = document.getElementById('questions-container');
+    const questionIndex = container.children.length;
+    
+    const questionDiv = document.createElement('div');
+    questionDiv.className = 'question-item';
+    questionDiv.style.cssText = `
+        border: 1px solid #ddd; 
+        border-radius: 6px; 
+        padding: 1.5rem; 
+        margin-bottom: 1rem;
+        background: #f9f9f9;
+    `;
+    questionDiv.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h5 style="margin: 0;">Вопрос ${questionIndex + 1}</h5>
+            <button type="button" class="action-button action-delete" onclick="removeQuestion(${questionIndex})">
+                ✕ Удалить вопрос
+            </button>
+        </div>
+        
+        <div class="form-group">
+            <label>Текст вопроса *</label>
+            <input type="text" class="question-text" placeholder="Введите текст вопроса" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Тип вопроса</label>
+            <select class="question-type" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px;">
+                <option value="single">Один ответ</option>
+                <option value="multiple">Несколько ответов</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Баллы за вопрос</label>
+            <input type="number" class="question-points" value="1" min="1" required>
+        </div>
+        
+        <div style="margin-top: 1rem; margin-bottom: 1rem;">
+            <h6 style="margin: 0 0 0.5rem 0;">Ответы</h6>
+            <div class="answers-container"></div>
+            <button type="button" class="add-button" onclick="addAnswer(${questionIndex})" style="margin-top: 0.5rem;">
+                ➕ Добавить ответ
+            </button>
+        </div>
+    `;
+    
+    container.appendChild(questionDiv);
+    
+    // Добавить 2 пустых ответа по умолчанию
+    addAnswer(questionIndex);
+    addAnswer(questionIndex);
+}
+
+// Удалить вопрос
+function removeQuestion(index) {
+    const container = document.getElementById('questions-container');
+    if (container.children[index]) {
+        container.children[index].remove();
+        
+        // Переиндексировать оставшиеся вопросы
+        Array.from(container.children).forEach((child, i) => {
+            const h5 = child.querySelector('h5');
+            if (h5) h5.textContent = `Вопрос ${i + 1}`;
+            
+            const deleteBtn = child.querySelector('.action-delete');
+            if (deleteBtn) deleteBtn.onclick = () => removeQuestion(i);
+        });
+    }
+}
+
+// Добавить новый ответ для вопроса
+function addAnswer(questionIndex) {
+    const questions = document.getElementById('questions-container').children;
+    if (!questions[questionIndex]) return;
+    
+    const answersContainer = questions[questionIndex].querySelector('.answers-container');
+    const answerIndex = answersContainer.children.length;
+    
+    const answerDiv = document.createElement('div');
+    answerDiv.style.cssText = `
+        display: flex; 
+        gap: 0.5rem; 
+        margin-bottom: 0.75rem; 
+        align-items: center;
+        background: white;
+        padding: 0.75rem;
+        border-radius: 4px;
+    `;
+    answerDiv.innerHTML = `
+        <input type="checkbox" class="answer-correct" title="Правильный ответ?">
+        <input type="text" class="answer-text" placeholder="Текст ответа" style="flex: 1; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;" required>
+        <button type="button" class="action-button action-delete" onclick="removeAnswer(${questionIndex}, ${answerIndex})" style="padding: 0.5rem 1rem;">
+            ✕
+        </button>
+    `;
+    
+    answersContainer.appendChild(answerDiv);
+}
+
+// Удалить ответ
+function removeAnswer(questionIndex, answerIndex) {
+    const questions = document.getElementById('questions-container').children;
+    if (!questions[questionIndex]) return;
+    
+    const answersContainer = questions[questionIndex].querySelector('.answers-container');
+    if (answersContainer.children[answerIndex]) {
+        answersContainer.children[answerIndex].remove();
+    }
+}
+
+// Отредактировать тест
+async function editTest(id) {
+    const test = testsData.find(t => t.id === id);
+    if (!test) return;
+    
+    document.getElementById('test-modal-title').textContent = 'Редактировать тест';
+    document.getElementById('test-id').value = test.id;
+    document.getElementById('test-lecture').value = test.lectureId;
+    document.getElementById('test-title').value = test.title;
+    document.getElementById('test-number').value = test.testNumber;
+    document.getElementById('test-passing-score').value = test.passingScore;
+    document.getElementById('test-time-limit').value = test.timeLimit || 30;
+    
+    // Очистить и заполнить вопросы
+    document.getElementById('questions-container').innerHTML = '';
+    
+    if (test.questions && test.questions.length > 0) {
+        test.questions.forEach((question, qIndex) => {
+            addQuestion();
+            
+            const questions = document.getElementById('questions-container').children;
+            const questionDiv = questions[qIndex];
+            
+            questionDiv.querySelector('.question-text').value = question.question;
+            questionDiv.querySelector('.question-type').value = question.type || 'single';
+            questionDiv.querySelector('.question-points').value = question.points || 1;
+            
+            // Очистить и заполнить ответы
+            const answersContainer = questionDiv.querySelector('.answers-container');
+            answersContainer.innerHTML = '';
+            
+            if (question.answers && question.answers.length > 0) {
+                question.answers.forEach((answer, aIndex) => {
+                    addAnswer(qIndex);
+                    
+                    const answerDiv = answersContainer.children[aIndex];
+                    answerDiv.querySelector('.answer-correct').checked = answer.isCorrect;
+                    answerDiv.querySelector('.answer-text').value = answer.answer;
+                });
+            }
+        });
+    } else {
+        addQuestion();
+    }
+    
+    document.getElementById('test-modal').classList.add('active');
+}
+
+// Удалить тест
+async function deleteTest(id) {
+    if (!confirm('Вы уверены, что хотите удалить этот тест с всеми вопросами и ответами?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/tests/${id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            alert('Тест успешно удален');
+            loadAdminData();
+        } else {
+            const error = await response.json();
+            alert('Ошибка: ' + error.error);
+        }
+    } catch (error) {
+        console.error('Ошибка удаления теста:', error);
+        alert('Произошла ошибка при удалении теста');
+    }
+}
+
+// Отправка формы теста
+document.getElementById('test-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const testId = document.getElementById('test-id').value;
+    const lectureId = document.getElementById('test-lecture').value;
+    
+    if (!lectureId) {
+        alert('Выберите лекцию');
+        return;
+    }
+    
+    // Собрать данные вопросов и ответов
+    const questions = [];
+    const questionElements = document.getElementById('questions-container').children;
+    
+    Array.from(questionElements).forEach((questionDiv, qIndex) => {
+        const questionText = questionDiv.querySelector('.question-text').value;
+        const questionType = questionDiv.querySelector('.question-type').value;
+        const questionPoints = parseInt(questionDiv.querySelector('.question-points').value);
+        
+        if (!questionText) {
+            alert(`Заполните текст вопроса ${qIndex + 1}`);
+            throw new Error('Empty question');
+        }
+        
+        const answers = [];
+        const answerDivs = questionDiv.querySelector('.answers-container').children;
+        let hasCorrectAnswer = false;
+        
+        Array.from(answerDivs).forEach((answerDiv, aIndex) => {
+            const answerText = answerDiv.querySelector('.answer-text').value;
+            const isCorrect = answerDiv.querySelector('.answer-correct').checked;
+            
+            if (!answerText) {
+                alert(`Заполните текст ответа ${aIndex + 1} вопроса ${qIndex + 1}`);
+                throw new Error('Empty answer');
+            }
+            
+            if (isCorrect) hasCorrectAnswer = true;
+            
+            answers.push({
+                answer: answerText,
+                isCorrect: isCorrect,
+                order: aIndex
+            });
+        });
+        
+        if (!hasCorrectAnswer) {
+            alert(`Отметьте хотя бы один правильный ответ для вопроса ${qIndex + 1}`);
+            throw new Error('No correct answer');
+        }
+        
+        questions.push({
+            question: questionText,
+            type: questionType,
+            points: questionPoints,
+            order: qIndex,
+            answers: answers
+        });
+    });
+    
+    if (questions.length === 0) {
+        alert('Добавьте хотя бы один вопрос');
+        return;
+    }
+    
+    const data = {
+        title: document.getElementById('test-title').value,
+        testNumber: parseInt(document.getElementById('test-number').value),
+        passingScore: parseInt(document.getElementById('test-passing-score').value),
+        timeLimit: parseInt(document.getElementById('test-time-limit').value),
+        questions: questions
+    };
+    
+    try {
+        const url = testId ? `/api/tests/${testId}` : `/api/lectures/${lectureId}/tests`;
+        const method = testId ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            alert(testId ? 'Тест успешно обновлен' : 'Тест успешно создан');
+            closeTestModal();
+            loadAdminData();
+        } else {
+            const error = await response.json();
+            alert('Ошибка: ' + error.error);
+        }
+    } catch (error) {
+        if (error.message === 'Empty question' || error.message === 'Empty answer' || error.message === 'No correct answer') {
+            return;
+        }
+        console.error('Ошибка сохранения теста:', error);
+        alert('Произошла ошибка при сохранении теста');
+    }
+});
+
+// Закрытие модального окна по клику вне контента
+document.getElementById('test-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'test-modal') {
+        closeTestModal();
     }
 });
 
